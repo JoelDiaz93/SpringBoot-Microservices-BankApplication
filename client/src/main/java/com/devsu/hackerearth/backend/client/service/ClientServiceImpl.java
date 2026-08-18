@@ -29,8 +29,9 @@ public class ClientServiceImpl implements ClientService {
 
 	@Override
 	public ClientDto getById(Long id) {
-		Client client = findById(id);
-		return toDto(client);
+		return clientRepository.findById(id)
+				.map(this::toDto)
+				.orElse(null);
 	}
 
 	@Override
@@ -45,11 +46,17 @@ public class ClientServiceImpl implements ClientService {
 
 	@Override
 	public ClientDto update(ClientDto clientDto) {
-		if (clientDto.getId() == null) {
-			throw new IllegalArgumentException("Client id is required");
+		if (clientDto == null || clientDto.getId() == null) {
+			return null;
 		}
 
-		Client client = findById(clientDto.getId());
+		Client client = clientRepository
+				.findById(clientDto.getId())
+				.orElse(null);
+
+		if (client == null) {
+			return null;
+		}
 		client.setDni(clientDto.getDni());
 		client.setName(clientDto.getName());
 		client.setPassword(clientDto.getPassword());
@@ -59,27 +66,38 @@ public class ClientServiceImpl implements ClientService {
 		client.setPhone(clientDto.getPhone());
 		client.setActive(clientDto.isActive());
 
-		Client updateClient = clientRepository.save(client);
-		return toDto(updateClient);
+		clientRepository.save(client);
+
+		return toDto(client);
 	}
 
 	@Override
 	public ClientDto partialUpdate(Long id, PartialClientDto partialClientDto) {
 		Client client = findById(id);
+
+		if (client == null) {
+			return null;
+		}
+
 		client.setActive(partialClientDto.isActive());
+
 		Client updateClient = clientRepository.save(client);
+
 		return toDto(updateClient);
 	}
 
 	@Override
 	public void deleteById(Long id) {
 		Client client = findById(id);
-		clientRepository.delete(client);
+
+		if (client != null) {
+			clientRepository.delete(client);
+		}
 	}
 
 	public Client findById(Long id) {
 		return clientRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Client no found with id: " + id));
+				.orElse(null);
 	}
 
 	private ClientDto toDto(Client client) {

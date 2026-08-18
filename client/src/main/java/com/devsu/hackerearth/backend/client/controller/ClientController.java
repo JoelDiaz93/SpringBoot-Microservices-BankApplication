@@ -36,7 +36,12 @@ public class ClientController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<ClientDto> get(@PathVariable Long id) {
-		return ResponseEntity.ok(clientService.getById(id));
+		ClientDto client = clientService.getById(id);
+
+		if (client == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(client);
 	}
 
 	@PostMapping
@@ -49,21 +54,42 @@ public class ClientController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ClientDto> update(@PathVariable Long id, @RequestBody ClientDto clientDto) {
+		ClientDto client = clientService.getById(id);
+
+		if (client == null) {
+			return ResponseEntity.notFound().build();
+		}
+
 		clientDto.setId(id);
 
-		return ResponseEntity.ok(
-				clientService.update((clientDto)));
+		ClientDto updateClient = clientService.update(clientDto);
+
+		if (updateClient != null) {
+			return ResponseEntity.ok(updateClient);
+		}
+
+		return ResponseEntity.ok(clientDto);
 	}
 
 	@PatchMapping("/{id}")
 	public ResponseEntity<ClientDto> partialUpdate(@PathVariable Long id,
 			@RequestBody PartialClientDto partialClientDto) {
-		return ResponseEntity.ok(
-				clientService.partialUpdate(id, partialClientDto));
+
+		ClientDto updateClient = clientService.partialUpdate(id, partialClientDto);
+		if (updateClient == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(updateClient);
 	}
 
-	@DeleteMapping
+	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		ClientDto client = clientService.getById(id);
+
+		if (client == null) {
+			return ResponseEntity.notFound().build();
+		}
+
 		clientService.deleteById(id);
 
 		return ResponseEntity.noContent().build();

@@ -39,7 +39,12 @@ public class TransactionController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<TransactionDto> get(@PathVariable Long id) {
-		return ResponseEntity.ok(transactionService.getById(id));
+		TransactionDto transaction = transactionService.getById(id);
+
+		if (transaction == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(transaction);
 	}
 
 	@PostMapping
@@ -53,10 +58,11 @@ public class TransactionController {
 	public ResponseEntity<List<BankStatementDto>> report(@PathVariable Long clientId,
 			@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTransactionStart,
 			@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTransactionEnd) {
+				
+				List<BankStatementDto> report =
+				transactionService.getAllByAccountClientIdAndDateBetween(clientId, dateTransactionStart, dateTransactionEnd);
 
-		return ResponseEntity.ok(
-				transactionService
-						.getAllByAccountClientIdAndDateBetween(clientId, dateTransactionStart, dateTransactionEnd));
+		return ResponseEntity.ok(report);
 	}
 
 	@PutMapping("/{id}")
